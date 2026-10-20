@@ -14,3 +14,10 @@ the bottom.
 npm install
 npm run dev
 ```
+
+The production build includes an installable web app manifest and an offline
+service worker. Regenerate the platform icons after editing `public/logo.svg`:
+
+```bash
+npm run generate-pwa-assets
+```
