@@ -8,7 +8,9 @@ type Position = {
 
 type FretboardProps = {
   activePosition: Position | null
+  activeStrings: number[]
   correctPosition: string | null
+  minFret: number
   maxFret: number
   revealTarget: boolean
   showStringNames: boolean
@@ -17,13 +19,19 @@ type FretboardProps = {
 
 export function Fretboard({
   activePosition,
+  activeStrings,
   correctPosition,
+  minFret,
   maxFret,
   revealTarget,
   showStringNames,
   onChoose,
 }: FretboardProps) {
-  const visibleFrets = FRETS.filter((fret) => fret <= maxFret)
+  const visibleFrets = FRETS.filter(
+    (fret) => fret >= minFret && fret <= maxFret,
+  )
+  const furthestString = BASS_STRINGS[activeStrings[0]]
+  const nearestString = BASS_STRINGS[activeStrings.at(-1) ?? activeStrings[0]]
   const minimumWidth = `${44 + visibleFrets.length * 48}px`
   const fretboardColumns: CSSProperties = {
     gridTemplateColumns: `44px repeat(${visibleFrets.length}, minmax(48px, 1fr))`,
@@ -45,7 +53,9 @@ export function Fretboard({
         </div>
 
         <div className="fretboard" style={{ minWidth: minimumWidth }}>
-          {BASS_STRINGS.map((bassString, stringIndex) => (
+          {activeStrings.map((stringIndex) => {
+            const bassString = BASS_STRINGS[stringIndex]
+            return (
             <div
               className="string-row"
               style={fretboardColumns}
@@ -96,14 +106,19 @@ export function Fretboard({
                 )
               })}
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
       <div className="orientation">
         <span>
-          {showStringNames
-            ? 'G is furthest away · low E is nearest you'
-            : 'Highest string is furthest away · lowest string is nearest you'}
+          {activeStrings.length === 1
+            ? showStringNames
+              ? `${furthestString.label} string selected`
+              : 'One string selected'
+            : showStringNames
+              ? `${furthestString.label} is furthest away · ${nearestString.label} is nearest you`
+              : 'Highest selected string is furthest away · lowest selected string is nearest you'}
         </span>
         <span>nut ← · body →</span>
       </div>

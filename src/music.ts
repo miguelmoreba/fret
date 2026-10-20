@@ -33,10 +33,27 @@ export function getNoteAt(openNote: Note, fret: number): Note {
   return NOTES[(openNoteIndex + fret) % NOTES.length]
 }
 
+export function getAvailableNotes(
+  stringIndices: readonly number[],
+  minFret: number,
+  maxFret: number,
+): Note[] {
+  const availableNotes = new Set<Note>()
+
+  stringIndices.forEach((stringIndex) => {
+    const bassString = BASS_STRINGS[stringIndex]
+    for (let fret = minFret; fret <= maxFret; fret += 1) {
+      availableNotes.add(getNoteAt(bassString.openNote, fret))
+    }
+  })
+
+  return NOTES.filter((note) => availableNotes.has(note))
+}
+
 export function randomItem<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)]
 }
 
-export function randomFret(max: number): number {
-  return Math.floor(Math.random() * (max + 1))
+export function randomInteger(min: number, max: number): number {
+  return min + Math.floor(Math.random() * (max - min + 1))
 }

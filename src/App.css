@@ -20,6 +20,8 @@
 .header-controls {
   display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 14px;
 }
 
@@ -86,6 +88,76 @@ button:focus-visible {
   text-transform: uppercase;
 }
 
+.fret-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.string-filter {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.string-filter legend {
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.string-options {
+  display: flex;
+  gap: 4px;
+}
+
+.string-options label {
+  position: relative;
+}
+
+.string-options input {
+  position: absolute;
+  opacity: 0;
+}
+
+.string-options span {
+  display: grid;
+  place-items: center;
+  min-width: 42px;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.string-options input:checked + span {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--background);
+}
+
+.string-options input:focus-visible + span {
+  outline: 3px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  outline-offset: 2px;
+}
+
+.string-options input:disabled + span {
+  cursor: default;
+}
+
 .string-name-toggle {
   display: flex;
   align-items: center;
@@ -114,6 +186,18 @@ button:focus-visible {
   font: inherit;
   font-size: 0.9rem;
   text-transform: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .prompt {

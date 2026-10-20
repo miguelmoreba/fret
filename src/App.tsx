@@ -3,9 +3,11 @@ import './App.css'
 import { Fretboard } from './Fretboard'
 import {
   BASS_STRINGS,
+  FRETS,
   NOTES,
+  getAvailableNotes,
   getNoteAt,
-  randomFret,
+  randomInteger,
   randomItem,
   type Note,
 } from './music'
@@ -16,7 +18,11 @@ function App() {
   const [mode, setMode] = useState<Mode>('find')
   const [promptNote, setPromptNote] = useState<Note>('D')
   const [target, setTarget] = useState({ stringIndex: 1, fret: 5 })
+  const [minFret, setMinFret] = useState(0)
   const [maxFret, setMaxFret] = useState(12)
+  const [activeStrings, setActiveStrings] = useState<number[]>(
+    BASS_STRINGS.map((_, index) => index),
+  )
   const [showStringNames, setShowStringNames] = useState(true)
   const [feedback, setFeedback] = useState('Choose a position that plays D.')
   const [correctPosition, setCorrectPosition] = useState<string | null>(null)
@@ -65,18 +71,56 @@ function App() {
     )
   }
 
-  function changeFretRange(nextMaxFret: number) {
+  function resetForSettings(
+    nextStrings: number[],
+    nextMinFret: number,
+    nextMaxFret: number,
+  ) {
+    const nextNote = randomItem(
+      getAvailableNotes(nextStrings, nextMinFret, nextMaxFret),
+    )
+
+    setPromptNote(nextNote)
     setMaxFret(nextMaxFret)
+    setMinFret(nextMinFret)
+    setActiveStrings(nextStrings)
     setCorrectPosition(null)
     setRevealTarget(false)
     setTarget({
-      stringIndex: randomFret(BASS_STRINGS.length - 1),
-      fret: randomFret(nextMaxFret),
+      stringIndex: randomItem(nextStrings),
+      fret: randomInteger(nextMinFret, nextMaxFret),
     })
     setFeedback(
       mode === 'find'
-        ? `Choose a position that plays ${promptNote}.`
+        ? `Choose a position that plays ${nextNote}.`
         : 'Choose the note name below.',
+    )
+  }
+
+  function toggleString(stringIndex: number) {
+    const isActive = activeStrings.includes(stringIndex)
+    if (isActive && activeStrings.length === 1) return
+
+    const nextStrings = isActive
+      ? activeStrings.filter((index) => index !== stringIndex)
+      : [...activeStrings, stringIndex].sort((a, b) => a - b)
+
+    resetForSettings(nextStrings, minFret, maxFret)
+  }
+
+  function changeMinFret(nextMinFret: number) {
+    resetForSettings(
+      activeStrings,
+      nextMinFret,
+      Math.max(nextMinFret, maxFret),
+    )
+  }
+
+  function changeMaxFret(nextMaxFret: number) {
+    resetForSettings(
+      activeStrings,
+      Math.min(minFret, nextMaxFret),
+      nextMaxFret,
     )
   }
 
@@ -85,15 +129,17 @@ function App() {
     setRevealTarget(false)
 
     if (mode === 'find') {
-      const note = randomItem(NOTES)
+      const note = randomItem(
+        getAvailableNotes(activeStrings, minFret, maxFret),
+      )
       setPromptNote(note)
       setFeedback(`Choose a position that plays ${note}.`)
       return
     }
 
     setTarget({
-      stringIndex: randomFret(BASS_STRINGS.length - 1),
-      fret: randomFret(maxFret),
+      stringIndex: randomItem(activeStrings),
+      fret: randomInteger(minFret, maxFret),
     })
     setFeedback('Choose the note name below.')
   }
@@ -106,6 +152,25 @@ function App() {
           <h1>Fretboard trainer</h1>
         </div>
         <div className="header-controls">
+          <fieldset className="string-filter">
+            <legend>Practice strings</legend>
+            <div className="string-options">
+              {BASS_STRINGS.map((bassString, stringIndex) => {
+                const checked = activeStrings.includes(stringIndex)
+                return (
+                  <label key={bassString.label}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={checked && activeStrings.length === 1}
+                      onChange={() => toggleString(stringIndex)}
+                    />
+                    <span>{bassString.label}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </fieldset>
           <label className="string-name-toggle">
             <input
               type="checkbox"
@@ -114,18 +179,44 @@ function App() {
             />
             <span>Show string names</span>
           </label>
-          <label className="fret-range">
-            <span>Fret range</span>
-            <select
-              value={maxFret}
-              onChange={(event) => changeFretRange(Number(event.target.value))}
-            >
-              <option value="4">0–4</option>
-              <option value="7">0–7</option>
-              <option value="9">0–9</option>
-              <option value="12">0–12</option>
-            </select>
-          </label>
+          <div className="fret-range">
+            <span>Fret interval</span>
+            <div className="fret-range-inputs">
+              <label>
+                <span className="sr-only">First fret</span>
+                <select
+                  aria-label="First fret"
+                  value={minFret}
+                  onChange={(event) =>
+                    changeMinFret(Number(event.target.value))
+                  }
+                >
+                  {FRETS.map((fret) => (
+                    <option value={fret} key={fret}>
+                      {fret}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span aria-hidden="true">to</span>
+              <label>
+                <span className="sr-only">Last fret</span>
+                <select
+                  aria-label="Last fret"
+                  value={maxFret}
+                  onChange={(event) =>
+                    changeMaxFret(Number(event.target.value))
+                  }
+                >
+                  {FRETS.map((fret) => (
+                    <option value={fret} key={fret}>
+                      {fret}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
           <nav className="mode-switch" aria-label="Practice mode">
             <button
               type="button"
@@ -165,7 +256,9 @@ function App() {
 
       <Fretboard
         activePosition={mode === 'name' ? target : null}
+        activeStrings={activeStrings}
         correctPosition={correctPosition}
+        minFret={minFret}
         maxFret={maxFret}
         revealTarget={revealTarget}
         showStringNames={showStringNames}
