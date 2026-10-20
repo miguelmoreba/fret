@@ -1,0 +1,42 @@
+export const NOTES = [
+  'C',
+  'C♯',
+  'D',
+  'D♯',
+  'E',
+  'F',
+  'F♯',
+  'G',
+  'G♯',
+  'A',
+  'A♯',
+  'B',
+] as const
+
+export type Note = (typeof NOTES)[number]
+
+export const BASS_STRINGS = [
+  { label: 'G', openNote: 'G', width: 1.5 },
+  { label: 'D', openNote: 'D', width: 2 },
+  { label: 'A', openNote: 'A', width: 2.5 },
+  { label: 'E', openNote: 'E', width: 3 },
+] as const satisfies ReadonlyArray<{
+  label: string
+  openNote: Note
+  width: number
+}>
+
+export const FRETS = Array.from({ length: 13 }, (_, fret) => fret)
+
+export function getNoteAt(openNote: Note, fret: number): Note {
+  const openNoteIndex = NOTES.indexOf(openNote)
+  return NOTES[(openNoteIndex + fret) % NOTES.length]
+}
+
+export function randomItem<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)]
+}
+
+export function randomFret(max: number): number {
+  return Math.floor(Math.random() * (max + 1))
+}
